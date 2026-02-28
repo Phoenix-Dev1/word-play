@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit - {{ song.track }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #121212; }
+        .edit-card { background-color: #242424; border: 1px solid #333; }
+        .code-font { font-family: monospace; font-size: 14px; background-color: #1a1a1a; color: #ddd; border: 1px solid #444; }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ song.artist }} - {{ song.track }}</h2>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Main Editor Column -->
+        <div class="col-md-8">
+            <div class="card edit-card p-4 rounded mb-4">
+                <form action="{{ url_for('update_song', doc_id=song['_id']) }}" method="post">
+                    
+                    <div class="mb-3">
+                        <label for="plainLyrics" class="form-label text-warning fw-bold">Plain Lyrics (Raw Text)</label>
+                        <textarea class="form-control code-font" id="plainLyrics" name="plainLyrics" rows="10" {% if plain_rtl %}dir="rtl"{% endif %}>{{ song.plainLyrics or '' }}</textarea>
+                        <div class="form-text">Used as fallback if syncing fails or model input.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="syncedLyrics" class="form-label text-success fw-bold">Synced Lyrics (LRC Format)</label>
+                        <textarea class="form-control code-font" id="syncedLyrics" name="syncedLyrics" rows="15" {% if synced_rtl %}dir="rtl"{% endif %}>{{ song.syncedLyrics or '' }}</textarea>
+                        <div class="form-text">Must include timestamp tags e.g., <code>[00:13.77]Line here</code></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg px-5">Save Changes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions Column -->
+        <div class="col-md-4">
+            <!-- External Links Card -->
+            <div class="card edit-card p-4 rounded mb-4 border-info">
+                <h5 class="text-info mb-3 border-bottom border-info pb-2"><i class="bi bi-box-arrow-up-right"></i> External Tools</h5>
+                <p class="text-muted small">Can't find the correct lyrics? Search for them manually on Genius.</p>
+                <a href="{{ genius_url }}" target="_blank" class="btn btn-outline-info w-100 fw-bold">
+                    Open in Genius
+                </a>
+            </div>
+
+            <div class="card edit-card p-4 rounded mb-4">
+                <h5 class="mb-3 border-bottom border-secondary pb-2">Sync Controls</h5>
+                
+                <p class="text-muted small">
+                    If this song has Plain text but no Synced text, you can force Word-Play to re-attempt AI Alignment.
+                </p>
+
+                <div class="mb-4">
+                    <button type="button" id="forceSyncBtn" class="btn btn-warning w-100 fw-bold" data-target="{{ url_for('force_sync', doc_id=song['_id']) }}" data-hassync="{% if song.syncedLyrics %}true{% else %}false{% endif %}">
+                        Force AI Sync
+                    </button>
+                    <div class="form-text mt-2 text-center">
+                        <small>Resets <code>last_sync_attempt</code> queue.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card edit-card p-4 rounded border-danger">
+                <h5 class="text-danger mb-3 border-bottom border-danger pb-2">Danger Zone</h5>
+                <div>
+                    <button type="button" id="deleteSongBtn" class="btn btn-outline-danger w-100" data-target="{{ url_for('delete_song', doc_id=song['_id']) }}">
+                        Delete Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const forceSyncBtn = document.getElementById("forceSyncBtn");
+        const deleteSongBtn = document.getElementById("deleteSongBtn");
+        
+        function showFlash(message, type="success") {
+            // Find existing flash container or prepend to container
+            let container = document.querySelector(".container");
+            let alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+            container.insertAdjacentHTML('afterbegin', alertHtml);
+        }
+
+        if (forceSyncBtn) {
+            forceSyncBtn.addEventListener("click", function() {
+                const hasSync = this.getAttribute("data-hassync") === "true";
+                if (hasSync && !confirm("This song already has synced lyrics. Forcing sync will DELETE the current LRC tags and rerun the AI. Are you sure?")) {
+                    return;
+                }
+                
+                const url = this.getAttribute("data-target");
+                
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        showFlash(data.message || "Sync queued successfully.", "success");
+                    } else {
+                        showFlash(`Error: ${data.error}`, "danger");
+                    }
+                })
+                .catch(err => showFlash("Network error processing request.", "danger"));
+            });
+        }
+        
+        if (deleteSongBtn) {
+            deleteSongBtn.addEventListener("click", function() {
+                if (!confirm("WARNING: Are you sure you want to permanently delete this song from MongoDB?")) {
+                    return;
+                }
+                
+                const url = this.getAttribute("data-target");
+                
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        // Redirect to index page upon successful deletion
+                        window.location.href = "{{ url_for('index') }}";
+                    } else {
+                        showFlash(`Error: ${data.error}`, "danger");
+                    }
+                })
+                .catch(err => showFlash("Network error processing request.", "danger"));
+            });
+        }
+    });
+</script>
+</body>
+</html>

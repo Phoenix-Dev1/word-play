@@ -1,0 +1,44 @@
+{% for song in songs %}
+<tr>
+    <td>
+        <input class="form-check-input row-checkbox" type="checkbox" value="{{ song['_id'] }}">
+    </td>
+    <td>{{ song.artist }}</td>
+    <td>{{ song.track }}</td>
+    <td>
+        {% if song.syncedLyrics %}
+            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Synced</span>
+        {% else %}
+            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">Pending / Error</span>
+        {% endif %}
+    </td>
+    <td class="text-end">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-link text-light text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+                <li><a class="dropdown-item" href="{{ url_for('edit', doc_id=song['_id']) }}"><i class="bi bi-pencil-square me-2"></i> Edit Lyrics</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form action="{{ url_for('force_sync', doc_id=song['_id']) }}" method="POST" style="display:inline;">
+                        <button class="dropdown-item text-info" type="submit"><i class="bi bi-arrow-repeat me-2"></i> Queue Re-sync</button>
+                    </form>
+                </li>
+                <li>
+                    <form action="{{ url_for('delete_song', doc_id=song['_id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Permanently delete this song?');">
+                        <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash me-2"></i> Delete Song</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5" class="text-center py-5">
+        <i class="bi bi-search text-muted mb-3" style="font-size: 2rem;"></i>
+        <h6 class="text-muted">No songs found matching your search.</h6>
+    </td>
+</tr>
+{% endfor %}

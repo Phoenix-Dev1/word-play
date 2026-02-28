@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word-Play | SaaS Dashboard</title>
+    
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <!-- JS Dependencies -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1a1b1e;
+            --main-bg: #121214;
+            --card-bg: #1e1f23;
+            --primary-accent: #3b82f6;
+            --success-soft: rgba(34, 197, 94, 0.1);
+            --warning-soft: rgba(234, 179, 8, 0.1);
+        }
+
+        body {
+            background-color: var(--main-bg);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #e4e6eb;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            position: fixed;
+            left: 0;
+            top: 0;
+            border-right: 1px solid #2d2f34;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .nav-link {
+            color: #a0a0a0;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary-accent);
+        }
+
+        .nav-link i, .nav-link svg {
+            margin-right: 12px;
+            width: 18px;
+        }
+
+        /* KPI Cards */
+        .kpi-card {
+            background-color: var(--card-bg);
+            border: 1px solid #2d2f34;
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: 100%;
+            transition: transform 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Table & Components */
+        .status-badge {
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            border: 1px solid #2d2f34;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-wrapper i, .search-wrapper svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            width: 18px;
+            height: 18px;
+        }
+
+        .search-input {
+            padding-left: 40px;
+            background-color: #2d2f34;
+            border: 1px solid #3f4147;
+            color: white;
+        }
+
+        .search-input:focus {
+            background-color: #35373d;
+            border-color: var(--primary-accent);
+            box-shadow: none;
+        }
+
+        .chart-container {
+            background-color: var(--card-bg);
+            border: 1px solid #2d2f34;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .table-responsive {
+            min-height: 250px;
+            overflow: visible;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="d-flex align-items-center mb-5 px-2">
+            <div class="bg-primary p-2 rounded me-3">
+                <i data-lucide="music" class="text-white"></i>
+            </div>
+            <h5 class="mb-0 fw-bold">Word-Play</h5>
+        </div>
+
+        <nav>
+            <a href="#overview" class="nav-link active">
+                <i data-lucide="layout-dashboard"></i> Overview
+            </a>
+            <a href="#library" class="nav-link">
+                <i data-lucide="library"></i> My Library
+            </a>
+            <a href="#analytics" class="nav-link">
+                <i data-lucide="activity"></i> Analytics
+            </a>
+            <a href="#settings" class="nav-link">
+                <i data-lucide="settings"></i> Settings
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-5">
+            <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25 small">
+                <p class="text-muted mb-2">Sync Status</p>
+                <div class="progress mb-2" style="height: 6px;">
+                    <div class="progress-bar bg-success" style="width: {{ pct_synced }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>{{ pct_synced }}% Complete</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold mb-1">Library Insights</h2>
+                <p class="text-muted small mb-0">Monitor sync performance and manage processed lyrics.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i data-lucide="download" class="me-1" style="width:14px"></i> Export
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Section -->
+        <div id="overview" class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-primary bg-opacity-10 text-primary">
+                        <i data-lucide="database"></i>
+                    </div>
+                    <span class="text-muted small">Total Tracks</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ total }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-success bg-opacity-10 text-success">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <span class="text-muted small">Synced Tracks</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ synced }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-info bg-opacity-10 text-info">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <span class="text-muted small">AI Alignment Coverage</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ pct_synced }}%</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-danger bg-opacity-10 text-danger">
+                        <i data-lucide="alert-circle"></i>
+                    </div>
+                    <span class="text-muted small">Errors / Missing</span>
+                    <h3 class="fw-bold mt-1 mb-0">{{ error_count }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div id="analytics" class="row g-4 mb-5">
+            <div class="col-lg-8">
+                <div class="chart-container">
+                    <h6 class="fw-bold mb-4">Sync Performance (Last 7 Days)</h6>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="chart-container">
+                    <h6 class="fw-bold mb-4">Library Health</h6>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="healthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Controls -->
+        <div id="flash-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show border-0 rounded-3 shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+
+        <div id="library" class="table-container p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div class="search-wrapper flex-grow-1">
+                    <i data-lucide="search"></i>
+                    <input type="text" 
+                           class="form-control mt-0 search-input rounded-pill py-2" 
+                           name="q" 
+                           placeholder="Search tracks or artists..."
+                           hx-get="/search"
+                           hx-trigger="keyup changed delay:500ms, search"
+                           hx-target="#lyrics-table-body"
+                           hx-indicator=".search-spinner">
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="spinner-border spinner-border-sm text-primary search-spinner htmx-indicator" role="status"></div>
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-secondary btn-sm dropdown-toggle rounded-pill px-3" type="button" id="bulkActionsBtn" data-bs-toggle="dropdown" disabled>
+                            Bulk Actions (<span id="selectedCount">0</span>)
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark shadow">
+                            <li><a class="dropdown-item text-warning" href="#" id="bulkSyncBtn"><i class="bi bi-arrow-repeat me-2"></i> Force Re-sync</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="bulkDeleteBtn"><i class="bi bi-trash me-2"></i> Delete Selected</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead class="text-muted small">
+                        <tr>
+                            <th style="width: 40px;"><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                            <th>ARTIST</th>
+                            <th>TRACK</th>
+                            <th>STATUS</th>
+                            <th class="text-end">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lyrics-table-body" class="border-top-0">
+                        {% include 'partials/table_rows.html' %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Simple UI Pagination (Ported) -->
+            {% if total_pages > 1 %}
+            <nav class="mt-4">
+                <ul class="pagination pagination-sm justify-content-end mb-0">
+                    <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link bg-dark border-secondary text-light rounded-start-pill px-3" href="{{ url_for('index', page=current_page-1) }}">Prev</a>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link bg-dark border-secondary text-muted">{{ current_page }} / {{ total_pages }}</span></li>
+                    <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                        <a class="page-link bg-dark border-secondary text-light rounded-end-pill px-3" href="{{ url_for('index', page=current_page+1) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <!-- Settings Section Placeholder -->
+        <div id="settings" class="chart-container mt-5">
+            <h6 class="fw-bold mb-4">Dashboard Settings</h6>
+            <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25 mb-3">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="darkModeToggle" checked disabled>
+                    <label class="form-check-label" for="darkModeToggle">Dark Mode (Always On)</label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Refresh Interval (HTMX Search Sync)</label>
+                    <select class="form-select bg-dark border-secondary text-light">
+                        <option selected>Manual / Type-based</option>
+                        <option value="1">500ms (Default)</option>
+                        <option value="2">1s</option>
+                        <option value="3">Instant</option>
+                    </select>
+                </div>
+            </div>
+            <p class="text-secondary small">More settings coming soon to integrate with `main.py` directly!</p>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            lucide.createIcons();
+
+            // --- Charts Initialization ---
+            const perfCtx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(perfCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ performance_labels|tojson }},
+                    datasets: [{
+                        label: 'Lyrics Synced',
+                        data: {{ performance_data|tojson }},
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#2d2f34' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const healthCtx = document.getElementById('healthChart').getContext('2d');
+            new Chart(healthCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Synced', 'Unsynced'],
+                    datasets: [{
+                        data: [{{ synced }}, {{ plain }}],
+                        backgroundColor: ['#22c55e', '#eab308'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { color: '#a0a0a0', padding: 20 } } }
+                }
+            });
+
+            // --- Bulk Actions Logic (Ported) ---
+            const tableBody = document.getElementById('lyrics-table-body');
+            const selectedCount = document.getElementById("selectedCount");
+            const bulkActionsBtn = document.getElementById("bulkActionsBtn");
+            const selectAll = document.getElementById("selectAll");
+
+            function updateSelection() {
+                const checkboxes = document.querySelectorAll(".row-checkbox:checked");
+                selectedCount.textContent = checkboxes.length;
+                bulkActionsBtn.disabled = checkboxes.length === 0;
+            }
+
+            // Delegation for HTMX-replaced elements
+            tableBody.addEventListener('change', function(e) {
+                if(e.target.classList.contains('row-checkbox')) updateSelection();
+            });
+
+            if(selectAll) {
+                selectAll.addEventListener("change", function() {
+                    document.querySelectorAll(".row-checkbox").forEach(cb => cb.checked = this.checked);
+                    updateSelection();
+                });
+            }
+
+            function getSelectedIds() {
+                return Array.from(document.querySelectorAll(".row-checkbox:checked")).map(cb => cb.value);
+            }
+
+            document.getElementById("bulkSyncBtn")?.addEventListener("click", function(e) {
+                e.preventDefault();
+                const ids = getSelectedIds();
+                if(!confirm(`Sync ${ids.length} songs?`)) return;
+                
+                fetch("{{ url_for('bulk_force_sync') }}", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ids: ids})
+                }).then(res => res.json()).then(data => {
+                    if(data.success) window.location.reload();
+                });
+            });
+
+            document.getElementById("bulkDeleteBtn")?.addEventListener("click", function(e) {
+                e.preventDefault();
+                const ids = getSelectedIds();
+                if(!confirm(`Delete ${ids.length} songs?`)) return;
+
+                fetch("{{ url_for('bulk_delete') }}", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ids: ids})
+                }).then(res => res.json()).then(data => {
+                    if(data.success) window.location.reload();
+                });
+            });
+
+            // Handle active class for navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Re-render Lucide icons after HTMX swaps
+            htmx.on("htmx:afterSwap", function(evt) {
+                if (evt.detail.target.id === "lyrics-table-body") {
+                    lucide.createIcons();
+                    updateSelection();
+                    if(selectAll) selectAll.checked = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

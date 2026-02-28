@@ -1,0 +1,187 @@
+{
+    "meta": {
+        "status": 200
+    },
+    "response": {
+        "sections": [
+            {
+                "type": "top_hit",
+                "hits": [
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/1855912",
+                            "header_image_url": "https://images.genius.com/1e588c2e35442948fa51498f33778bb1.580x580x1.jpg",
+                            "id": 1855912,
+                            "image_url": "https://images.genius.com/1e588c2e35442948fa51498f33778bb1.580x580x1.jpg",
+                            "index_character": "n",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Nitan Ben Ari - ניתן בן ארי",
+                            "slug": "Nitan-ben-ari",
+                            "url": "https://genius.com/artists/Nitan-ben-ari"
+                        }
+                    },
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/3531",
+                            "header_image_url": "https://images.genius.com/3de6f2ff41c8cd88fe48690789b7f512.220x220x1.jpg",
+                            "id": 3531,
+                            "image_url": "https://images.genius.com/3de6f2ff41c8cd88fe48690789b7f512.220x220x1.jpg",
+                            "index_character": "m",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Miri Ben-Ari - מירי בן-ארי",
+                            "slug": "Miri-ben-ari",
+                            "url": "https://genius.com/artists/Miri-ben-ari"
+                        }
+                    },
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/1011112",
+                            "header_image_url": "https://images.genius.com/c65ae8bba0715519058fbd1d55758243.275x183x1.jpg",
+                            "id": 1011112,
+                            "image_url": "https://images.genius.com/e634bd592a9dccbf6f615f9a3b2c409c.1000x1000x1.jpg",
+                            "index_character": "h",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Hanan Ben Ari - חנן בן ארי",
+                            "slug": "Hanan-ben-ari",
+                            "url": "https://genius.com/artists/Hanan-ben-ari"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "song",
+                "hits": []
+            },
+            {
+                "type": "lyric",
+                "hits": []
+            },
+            {
+                "type": "artist",
+                "hits": [
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/1855912",
+                            "header_image_url": "https://images.genius.com/1e588c2e35442948fa51498f33778bb1.580x580x1.jpg",
+                            "id": 1855912,
+                            "image_url": "https://images.genius.com/1e588c2e35442948fa51498f33778bb1.580x580x1.jpg",
+                            "index_character": "n",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Nitan Ben Ari - ניתן בן ארי",
+                            "slug": "Nitan-ben-ari",
+                            "url": "https://genius.com/artists/Nitan-ben-ari"
+                        }
+                    },
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/3531",
+                            "header_image_url": "https://images.genius.com/3de6f2ff41c8cd88fe48690789b7f512.220x220x1.jpg",
+                            "id": 3531,
+                            "image_url": "https://images.genius.com/3de6f2ff41c8cd88fe48690789b7f512.220x220x1.jpg",
+                            "index_character": "m",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Miri Ben-Ari - מירי בן-ארי",
+                            "slug": "Miri-ben-ari",
+                            "url": "https://genius.com/artists/Miri-ben-ari"
+                        }
+                    },
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/1011112",
+                            "header_image_url": "https://images.genius.com/c65ae8bba0715519058fbd1d55758243.275x183x1.jpg",
+                            "id": 1011112,
+                            "image_url": "https://images.genius.com/e634bd592a9dccbf6f615f9a3b2c409c.1000x1000x1.jpg",
+                            "index_character": "h",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Hanan Ben Ari - חנן בן ארי",
+                            "slug": "Hanan-ben-ari",
+                            "url": "https://genius.com/artists/Hanan-ben-ari"
+                        }
+                    },
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/480734",
+                            "header_image_url": "https://images.genius.com/3e119d4794d757a1e97a6c175192a957.1000x669x1.jpg",
+                            "id": 480734,
+                            "image_url": "https://images.genius.com/86b32809583fbc6549357062747bd55a.1000x1000x1.jpg",
+                            "index_character": "m",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Mosh Ben Ari - מוש בן ארי",
+                            "slug": "Mosh-ben-ari",
+                            "url": "https://genius.com/artists/Mosh-ben-ari"
+                        }
+                    },
+                    {
+                        "highlights": [],
+                        "index": "artist",
+                        "type": "artist",
+                        "result": {
+                            "_type": "artist",
+                            "api_path": "/artists/2549563",
+                            "header_image_url": "https://images.genius.com/b5a0477e7dc1f3f4426573ce3fd27d6e.904x686x1.png",
+                            "id": 2549563,
+                            "image_url": "https://images.genius.com/90b747c0f6db7a272d2b21fbb331ae86.1000x1000x1.jpg",
+                            "index_character": "g",
+                            "is_meme_verified": false,
+                            "is_verified": false,
+                            "name": "Gon Ben Ari - גון בן ארי",
+                            "slug": "Gon-ben-ari",
+                            "url": "https://genius.com/artists/Gon-ben-ari"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "album",
+                "hits": []
+            },
+            {
+                "type": "video",
+                "hits": []
+            },
+            {
+                "type": "article",
+                "hits": []
+            },
+            {
+                "type": "user",
+                "hits": []
+            }
+        ]
+    }
+}
