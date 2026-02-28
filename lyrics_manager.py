@@ -677,7 +677,7 @@ class LyricsManager(QObject):
             'no_warnings': True,
             'noprogress': True,
             'extract_audio': True,
-            'max_filesize': 5 * 1024 * 1024, # 5MB limit
+            'max_filesize': 20 * 1024 * 1024, # 20MB limit
         }
         
         try:
@@ -687,6 +687,9 @@ class LyricsManager(QObject):
                     filename = ydl.prepare_filename(info['entries'][0])
                     # Ensure path uses forward slashes to prevent \n escape sequences breaking FFmpeg
                     filename = os.path.abspath(filename).replace("\\", "/")
+                    if not os.path.exists(filename):
+                        logger.error(f"yt-dlp reported success but file does not exist (likely exceeded max_filesize): {filename}")
+                        return None
                     logger.info(f"Downloaded temp audio: {filename}")
                     return filename
         except Exception as e:
