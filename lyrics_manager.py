@@ -124,6 +124,9 @@ class LyricsManager(QObject):
                         logger.info(f"AI alignment cooldown active. Try again in {hours_left} hours.")
                         
                     return True
+                else:
+                    logger.info("Found 'Missing' record in MongoDB. Stop trying.")
+                    return False
         except Exception as e:
             logger.error(f"MongoDB read error: {e}")
 
@@ -224,6 +227,21 @@ class LyricsManager(QObject):
 
             # All fallbacks exhausted
             logger.warning("All LRCLIB exact and fallback search tiers exhausted. No lyrics found.")
+            
+            # Save a 'Missing' record to track this failure in the dashboard
+            try:
+                self.save_to_db({
+                    "track": track_name,
+                    "artist": artist_name,
+                    "plainLyrics": None,
+                    "syncedLyrics": None,
+                    "status": "Missing",
+                    "last_attempt": time.time()
+                })
+                logger.info(f"Saved 'Missing' record to MongoDB: {artist_name} - {track_name}")
+            except Exception as e:
+                logger.error(f"Failed to write Missing record to MongoDB: {e}")
+                
             self.lyrics_found.emit(False)
             return False
             
@@ -517,6 +535,15 @@ class LyricsManager(QObject):
             if not artist or not track:
                 logger.error("Cannot save to DB: missing artist or track")
                 return
+
+            # Skip write if it's completely empty AND not flagged as Missing
+            if not data_dict.get("plainLyrics") and not data_dict.get("syncedLyrics") and data_dict.get("status") != "Missing":
+                logger.warning("No lyrics to save and not flagged as Missing. Skipping DB write.")
+                return
+
+            # Clear out the "_id" key if it somehow got carried over to avoid ImmutableField errors
+            if "_id" in data_dict:
+                del data_dict["_id"]
 
             self.lyrics_collection.update_one(
                 {"artist": artist, "track": track},

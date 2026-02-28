@@ -8,8 +8,10 @@
     <td>
         {% if song.syncedLyrics %}
             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Synced</span>
+        {% elif song.status == "Missing" %}
+            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Missing</span>
         {% else %}
-            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">Pending / Error</span>
+            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">Pending / Plain</span>
         {% endif %}
     </td>
     <td class="text-end">
@@ -18,6 +20,14 @@
                 <i class="bi bi-three-dots-vertical"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+                {% if song.status == "Missing" or not song.syncedLyrics %}
+                <li>
+                    <button class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#manualEntryModal" 
+                            data-doc-id="{{ song['_id'] }}" data-artist="{{ song.artist }}" data-track="{{ song.track }}">
+                        <i class="bi bi-file-earmark-text me-2"></i> Add Lyrics (Manual)
+                    </button>
+                </li>
+                {% endif %}
                 <li><a class="dropdown-item" href="{{ url_for('edit', doc_id=song['_id']) }}"><i class="bi bi-pencil-square me-2"></i> Edit Lyrics</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>

@@ -11,6 +11,10 @@ from datetime import datetime, timedelta
 # Add parent directory to path to import db_config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import db_config
+from lyrics_manager import LyricsManager
+
+# Instantiate a global lyrics manager for triggering alignments
+lyrics_manager_instance = LyricsManager()
 
 app = Flask(__name__)
 app.secret_key = "wordplay_dashboard_secret_key" # Replace in production
@@ -56,10 +60,14 @@ def index():
     # Global stats
     total_docs = lyrics_collection.count_documents({})
     synced_count = lyrics_collection.count_documents({"syncedLyrics": {"$nin": [None, ""]}})
-    plain_count = total_docs - synced_count
+    missing_count = lyrics_collection.count_documents({"status": "Missing"})
+    
+    # Plain count is what's left over
+    plain_count = total_docs - synced_count - missing_count
     
     pct_synced = round((synced_count / total_docs * 100)) if total_docs > 0 else 0
     pct_plain = round((plain_count / total_docs * 100)) if total_docs > 0 else 0
+    pct_missing = round((missing_count / total_docs * 100)) if total_docs > 0 else 0
 
     filtered_count = lyrics_collection.count_documents(query)
     total_pages = math.ceil(filtered_count / per_page)
@@ -106,8 +114,10 @@ def index():
         total=total_docs,
         synced=synced_count, 
         plain=plain_count,
+        missing=missing_count,
         pct_synced=pct_synced,
         pct_plain=pct_plain,
+        pct_missing=pct_missing,
         unique_artists=unique_artists,
         current_page=page,
         total_pages=total_pages,
@@ -159,6 +169,47 @@ def edit(doc_id):
     except Exception as e:
         flash(f"Error loading song: {e}", "danger")
         return redirect(url_for("index"))
+
+@app.route("/api/submit-manual/<string:doc_id>", methods=["POST"])
+def submit_manual(doc_id):
+    try:
+        data = request.get_json()
+        plain_lyrics = data.get("plainLyrics", "").strip()
+        
+        if not plain_lyrics:
+            return jsonify({"success": False, "error": "No lyrics provided"}), 400
+            
+        song = lyrics_collection.find_one({"_id": ObjectId(doc_id)})
+        if not song:
+            return jsonify({"success": False, "error": "Song not found"}), 404
+            
+        artist = song.get("artist", "")
+        track = song.get("track", "")
+        
+        # 1. Update the document with plain lyrics and clear 'Missing' status
+        lyrics_collection.update_one(
+            {"_id": ObjectId(doc_id)},
+            {"$set": {
+                "plainLyrics": plain_lyrics,
+                "syncedLyrics": None,
+                "status": "Alignment Pending", # Clear out the Missing status
+                "last_sync_attempt": 0 # Force a fresh sync
+            }}
+        )
+        
+        # 2. Update the singleton instance so it doesn't immediately overwrite the DB with old state
+        lyrics_manager_instance.plain_lyrics = plain_lyrics
+        lyrics_manager_instance.is_synced = False
+        
+        # 3. Trigger background AI alignment
+        song_key = f"{artist} - {track}"
+        lyrics_manager_instance.trigger_ai_alignment(track, artist, song_key)
+        
+        return jsonify({"success": True, "message": "Lyrics saved and AI alignment started"})
+        
+    except Exception as e:
+        logging.error(f"Error in submit_manual: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/update/<string:doc_id>", methods=["POST"])
 def update_song(doc_id):
