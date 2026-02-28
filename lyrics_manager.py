@@ -690,16 +690,58 @@ class LyricsManager(QObject):
             logger.info("Starting Whisper forced alignment...")
             result = LyricsManager._whisper_model.align(audio_path, plain_text, language='he')
             
-            # Convert result to LRC format
-            lrc_lines = []
+            # Extract all words with their timestamps into a flat list
+            all_words = []
             for segment in result.segments:
-                start = segment.start
-                minutes = int(start // 60)
-                seconds = int(start % 60)
-                hundredths = int((start % 1) * 100)
+                for word in segment.words:
+                    word_text = word.word.strip()
+                    if word_text:
+                        all_words.append({
+                            "text": word_text,
+                            "start": word.start
+                        })
+            
+            # Split original plain text into lines
+            original_lines = [line.strip() for line in plain_text.split('\n')]
+            
+            lrc_lines = []
+            word_idx = 0
+            total_words = len(all_words)
+            
+            for line in original_lines:
+                if not line:
+                    continue
+                    
+                # We need to find the start time of the first word in this line.
+                # Since stable-ts might split words differently (punctuation, etc),
+                # we do a loose comparison by consuming words until we've matched 
+                # the approximate length of the original line.
                 
+                if word_idx >= total_words:
+                    logger.warning("Ran out of timestamped words before finishing original lines.")
+                    break
+                    
+                # The start time of this line is the start time of our current word pointer
+                line_start_time = all_words[word_idx]["start"]
+                
+                minutes = int(line_start_time // 60)
+                seconds = int(line_start_time % 60)
+                hundredths = int((line_start_time % 1) * 100)
                 lrc_time = f"[{minutes:02d}:{seconds:02d}.{hundredths:02d}]"
-                lrc_lines.append(f"{lrc_time}{segment.text.strip()}")
+                
+                # Reconstruct the line EXACTLY as it appeared in the plain text
+                lrc_lines.append(f"{lrc_time}{line}")
+                
+                # Consume words until we roughly match the character length of the original line.
+                # We remove spaces and punctuation for a robust length comparison.
+                clean_orig_line = re.sub(r'[^\w\s]', '', line).replace(" ", "")
+                char_count = 0
+                target_len = len(clean_orig_line)
+                
+                while word_idx < total_words and char_count < target_len:
+                    clean_word = re.sub(r'[^\w\s]', '', all_words[word_idx]["text"])
+                    char_count += len(clean_word)
+                    word_idx += 1
             
             return "\n".join(lrc_lines)
             
