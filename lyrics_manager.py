@@ -685,6 +685,8 @@ class LyricsManager(QObject):
                 info = ydl.extract_info(query, download=True)
                 if 'entries' in info and info['entries']:
                     filename = ydl.prepare_filename(info['entries'][0])
+                    # Ensure path uses forward slashes to prevent \n escape sequences breaking FFmpeg
+                    filename = os.path.abspath(filename).replace("\\", "/")
                     logger.info(f"Downloaded temp audio: {filename}")
                     return filename
         except Exception as e:
